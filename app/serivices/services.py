@@ -1,16 +1,21 @@
-from playwright.sync_api import sync_playwright, Playwright
+from playwright.async_api import async_playwright
 
 
-def link_check_function(url):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
-        page.goto(url)
-        browser.close()
-
-google = "https://www.google.com"
-
-link_check_function(google)
-
+async def url_check(url,browser):
+        page =await  browser.new_page()
+        try:
+                response = await page.goto(url,timeout=50000)
+  
+                return {
+                        "url":url,
+                        "up": response is not None and response.status < 500,
+                        "status": response.status
+                }
+        except Exception as e:
+                return{
+                        "url":url,
+                        "up": False,
+                        "error":str(e)
+                }
 
 
