@@ -1,21 +1,20 @@
-from playwright.async_api import async_playwright
+import asyncio
+import httpx
 
 
-async def url_check(url,browser):
-        page =await  browser.new_page()
+async def url_validation(url):
+    async with httpx.AsyncClient() as client:
         try:
-                response = await page.goto(url,timeout=50000)
-  
-                return {
-                        "url":url,
-                        "up": response is not None and response.status < 500,
-                        "status": response.status
-                }
+            response = await client.get(url)
+            return {
+                "url": url,
+                "is up": url is not None,
+                "status": response.status_code
+            }
         except Exception as e:
-                return{
-                        "url":url,
-                        "up": False,
-                        "error":str(e)
-                }
-
-
+            return {
+                "url": url,
+                "status": False,
+                "error":str(e)
+            }
+        
