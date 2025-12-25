@@ -1,20 +1,25 @@
-import asyncio
 import httpx
 
 
-async def url_validation(url):
-    async with httpx.AsyncClient() as client:
-        try:
+async def url_validation(url,client=httpx.AsyncClient):
+    try:   
             response = await client.get(url)
+
             return {
                 "url": url,
-                "is up": url is not None,
-                "status": response.status_code
+                "status_code": response.status_code,
+                "elapsed_time": response.elapsed.total_seconds(),
+                "Status": response.reason_phrase,
+                 "Additional_Info":(
+                    "Server_Error" if response.status_code >= 500 else
+                    "Client_Error" if response.status_code >= 400 else
+                    response.headers.get('location') if response.status_code == 302 else
+                    "Success")
             }
-        except Exception as e:
+    except Exception as e:
             return {
                 "url": url,
                 "status": False,
                 "error":str(e)
             }
-        
+

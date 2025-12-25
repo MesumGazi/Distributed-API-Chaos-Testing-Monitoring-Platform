@@ -2,20 +2,27 @@ import httpx
 import asyncio
 from fastapi import FastAPI
 from serivices.services import url_validation
-from config.config import url,attempts
+from config.config import setting
 app=FastAPI()
 
 
-urls=[url]*attempts
+urls=[setting.url]*setting.attempts
 
 @app.get("/check")
-async def is_google_up(max_concurrency_limit=10):
-    semaphore = asyncio.Semaphore(max_concurrency_limit)
-    async def semaphore_limit(url):
-        async with semaphore:
-            return await url_validation(url)
-    tasks=[semaphore_limit(url) for url in urls]
-    results = await asyncio.gather(*tasks)
+async def is_google_up():
+
+    semaphore = asyncio.Semaphore(setting.max_concurrency_limit)
+    async with httpx.AsyncClient(timeout=0.5) as client:
+        async def semaphore_limit(url):
+            async with semaphore:
+                return await url_validation(url,client)
+        tasks=[semaphore_limit(url) for url in urls]
+        results = await asyncio.gather(*tasks)
+
     return results
 
+
+
+if __name__ == "__main__":
+    asyncio.run(is_google_up())
 
