@@ -1,7 +1,7 @@
 import httpx
 import asyncio
 from fastapi import FastAPI
-from services.services import url_validation
+from .services.services import url_validation
 from config.config import setting
 app=FastAPI()
 
