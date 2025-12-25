@@ -25,4 +25,5 @@ jobs:
 
     - name: Run URL checks
       run: |
+         export PYTHONPATH=$PYTHONPATH:$(pwd)
          uvicorn app.routes:app --host 0.0.0.0 --port 8000 
