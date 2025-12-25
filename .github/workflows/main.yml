@@ -23,7 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run URL checks
-      run: |
-         export PYTHONPATH=$PYTHONPATH:$(pwd)
-         uvicorn app.routes:app --host 0.0.0.0 --port 8000 
+    - name: Start server
+      run: nohup uvicorn app.routes:app --host 127.0.0.1 --port 8000 &
+
+    - name: Test /check endpoint
+      run: python app\routes.py
+
