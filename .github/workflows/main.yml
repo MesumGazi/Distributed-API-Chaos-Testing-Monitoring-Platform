@@ -27,5 +27,5 @@ jobs:
       run: nohup uvicorn app.routes:app --host 127.0.0.1 --port 8000 &
 
     - name: Test /check endpoint
-      run: python app\routes.py
+      run: python app/routes.py
 
