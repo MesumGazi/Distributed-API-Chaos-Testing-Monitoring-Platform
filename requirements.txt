@@ -4,3 +4,4 @@ asyncio
 uvicorn
 pathlib
 pydantic_settings
+pytest

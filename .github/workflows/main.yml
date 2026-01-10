@@ -23,12 +23,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
     - name: Start server
       run: nohup uvicorn app.routes:app --host 127.0.0.1 --port 8000 &
 
     - name: Wait for server to start
       run: sleep 5
 
-    - name: Test /check endpoint
-      run: python app/routes.py
 
+
+
+   # - name: Test /check endpoint
+     # run: python app/routes.py
+
+    - name: Run tests
+      run: pytest tests/ -v
