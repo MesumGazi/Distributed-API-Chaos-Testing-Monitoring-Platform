@@ -1,8 +1,10 @@
 import httpx
 import asyncio
 from fastapi import FastAPI
-from services.services import url_validation
-from config.config import setting
+from .services.services import url_validation
+from .config.config import setting
+
+#fast api instance
 app=FastAPI()
 
 
@@ -35,7 +37,6 @@ async def is_google_up():
     }
 
 
-
 if __name__ == "__main__":
-    asyncio.run(is_google_up())
-
+    import uvicorn
+    uvicorn.run("routes:app", host="0.0.0.0", port=8000, reload=True)

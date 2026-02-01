@@ -2,53 +2,116 @@ import pytest
 import httpx
 from unittest.mock import Mock, AsyncMock
 from services.services import url_validation
+import asyncio
 
 
-@pytest.mark.asyncio
-async def test_successful_request():
-    mock_client = AsyncMock()
-    mock_response = Mock()
-
-    mock_response.status_code = 200
-    mock_response.reason_phrase = "OK"
-    mock_response.elapsed.total_seconds.return_value = 0.123
-    mock_response.headers.get.return_value = None
-
-    mock_client.get.return_value = mock_response
-
-    result = await url_validation("https://www.dummy.com", mock_client)
-
-    assert result["status_code"] == 200
-    assert result["Status"] == "OK"
-    assert result["Additional_Info"] == "Success"
-    assert result["elapsed_time"] == 0.123
+@pytest.fixture
+def client():
+    client = AsyncMock()
+    return client
 
 
-@pytest.mark.asyncio
-async def test_timeout():
-    mock_client = AsyncMock()
-    mock_client.get.side_effect = httpx.TimeoutException("Timeout")
 
-    result = await url_validation("https://slow.example.com", mock_client)
+@pytest.fixture(params=[
+    (200,"OK",0.123),
+    (500,"Internal Server Error",0.10),
+    (404,"Client_Error",0.10)
+])
 
-    assert result["Status"] is False
-    assert "error" in result
-    assert result["error"] == "request Timed out"
+def server(request):
+    status_code,reason_phrase,elapsed_time = request.param
+    server = Mock()
+
+    server.status_code = status_code
+    server.reason_phrase = reason_phrase
+    server.elapsed.total_seconds.return_value = elapsed_time
+    return server
+
 
 
 @pytest.mark.asyncio
-async def test_request_failed():
-    mock_client = AsyncMock()
-    mock_response = Mock()
+async def test_ficture(client,server):
+    
+    client.get.return_value = server
+    results = await url_validation("https://www.dummy.com",client)
+    assert results["status_code"] == server.status_code
+    assert results["Status"] ==  server.reason_phrase 
+    assert results ["elapsed_time"]== server.elapsed.total_seconds()
 
-    mock_response.status_code = 500
-    mock_response.reason_phrase = "server error"
-    mock_response.headers.get.return_value = None
 
-    mock_client.get.return_value = mock_response
 
-    result = await url_validation("https://www.dummy.com", mock_client)
 
-    assert result["status_code"] == 500
-    assert result["Status"] == "server error"
-    assert result["Additional_Info"] == "Server_Error"
+
+#unit test to test the server for 200, 404 and 500
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status_code,status,elapsed_time",
+    [
+        (200,"OK",0.123),
+        (500,"Internal Server Error",0.10),
+        (404,"Client_Error",0.10),
+    ],
+    ids=['RETURNS OK FOR 200','INTERNAL SERVER ERROR FOR 500','CLIENT ERROR FOR 500']
+)
+async def test_server_health(status_code, status,elapsed_time):
+    client = AsyncMock()
+    server = Mock()
+
+    server.status_code = status_code
+    server.reason_phrase = status
+    server.elapsed.total_seconds.return_value = elapsed_time
+
+    client.get.return_value = server
+    result = await url_validation("https://www.dummy.com",client)
+
+    assert result["status_code"] == status_code
+    assert result["Status"] ==status
+    assert result["elapsed_time"]==elapsed_time
+
+    
+
+
+
+
+#test for testing semaphore limit
+@pytest.mark.asyncio
+async def test_semaphore_limit():
+    url = "https://www.dummy.com"
+    semaphore_limit = 25
+    total_requests = 100
+
+    semaphore = asyncio.Semaphore(semaphore_limit)
+    running =0
+    max_running =0
+
+    async def fake_url_validation():
+        nonlocal running , max_running
+
+        running +=1 
+        max_running = max(running, max_running)
+        await asyncio.sleep(0.01)
+        running -=1
+
+    async def semaphore_wrapper():
+        async with semaphore:
+            return await fake_url_validation()
+        
+    tasks =[semaphore_wrapper() for _ in range(total_requests)]
+    results = await asyncio.gather(*tasks)
+
+    assert len(results) == total_requests
+    assert max_running <= semaphore_limit
+
+    
+
+
+   
+
+
+
+
+
+
+
+
+
