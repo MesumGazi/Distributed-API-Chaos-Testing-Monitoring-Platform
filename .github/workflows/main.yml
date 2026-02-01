@@ -33,9 +33,9 @@ jobs:
       run: sleep 5
 
     - name: Run tests
-      run: pytest tests/ -v
+      run: pytest app/tests/ -v
 
-      
+
     - name: Kill background server (cleanup)
       run: pkill -f "uvicorn app.routes:app"
 
