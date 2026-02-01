@@ -20,25 +20,29 @@ async def url_validation(url,client:httpx.AsyncClient):
            return{
                   "url":url,
                   "Status": False,
+                  "status_code": "Timeout",
                   "error":"request Timed out"
            }
     except httpx.HTTPStatusError as e:
            return{
                   "url":url,
                   "status": False,
+                  "status_code": e.response.status_code,
                   "error":f"http error{e.response.status_code}"
            }
     except httpx.NetworkError as e:
            return{
                 "url":url,
                 "status": False,
+                "status_code": "Network Error",
                 "error":f"Network Error {str(e)}"
                   
            }
-    except Exception as e:
+    except httpx.RequestError as e:
             return {
                 "url": url,
                 "status": False,
+                "status_code": "Unexpected Error",      
                 "error":f"unexpected error{str(e)}"
             }
 

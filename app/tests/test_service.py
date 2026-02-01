@@ -113,5 +113,12 @@ async def test_semaphore_limit():
 
 
 
-
-
+#test to check if endpoint is actually live and working
+@pytest.mark.asyncio
+async def test_live_endpoint():
+    async with httpx.AsyncClient() as client:
+        response = await client.get("http://127.0.0.1:8000/check")
+        assert response.status_code ==200 
+        data=response.json()
+        assert "summary" in data
+        assert "results" in data
