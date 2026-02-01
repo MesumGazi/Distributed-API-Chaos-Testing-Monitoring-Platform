@@ -1,7 +1,7 @@
 httpx
 fastapi
-asyncio
 uvicorn
 pathlib
 pydantic_settings
 pytest
+pytest-asyncio
