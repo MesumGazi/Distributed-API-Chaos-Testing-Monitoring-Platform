@@ -5,3 +5,5 @@ pathlib
 pydantic_settings
 pytest
 pytest-asyncio
+pytest-mock
+sqlalchemy

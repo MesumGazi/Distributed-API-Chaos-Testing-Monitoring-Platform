@@ -23,13 +23,7 @@ async def url_validation(url,client:httpx.AsyncClient):
                   "status_code": "Timeout",
                   "error":"request Timed out"
            }
-    except httpx.HTTPStatusError as e:
-           return{
-                  "url":url,
-                  "status": False,
-                  "status_code": e.response.status_code,
-                  "error":f"http error{e.response.status_code}"
-           }
+
     except httpx.NetworkError as e:
            return{
                 "url":url,
